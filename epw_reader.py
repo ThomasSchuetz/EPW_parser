@@ -44,38 +44,39 @@ def parse_data(values, results):
     results["cloudiness"].append(float(val[22])) # Total sky cover
 
 
-filename = "DEU_Dusseldorf.104000_IWEC.epw"
-
-result = {}
-key_list = ["date", # (Year, Month, Day, Hour, Minute)
-            "time", # Time in hours, beginning with 0
-            "temperature", # Ambient temperature in °C
-            "relative humidity", # In %
-            "pressure", # In Pa
-            "beam", # Direct horizontal radiation in Wh/m2 (resp. W/m2)
-            "diffuse", # Diffuse horizontal radiation in Wh/m2 (resp. W/m2)
-            "wind direction", # In °
-            "wind velocity", # In m/s
-            "cloudiness"] # 
-for key in key_list:
-    result[key] = []
+if __name__ == "__main__":
+    filename = "DEU_Dusseldorf.104000_IWEC.epw"
     
-with open(filename, "rb") as data:
-    parse_location(data.readline(), result)
+    result = {}
+    key_list = ["date", # (Year, Month, Day, Hour, Minute)
+                "time", # Time in hours, beginning with 0
+                "temperature", # Ambient temperature in °C
+                "relative humidity", # In %
+                "pressure", # In Pa
+                "beam", # Direct horizontal radiation in Wh/m2 (resp. W/m2)
+                "diffuse", # Diffuse horizontal radiation in Wh/m2 (resp. W/m2)
+                "wind direction", # In °
+                "wind velocity", # In m/s
+                "cloudiness"] # 
+    for key in key_list:
+        result[key] = []
+        
+    with open(filename, "rb") as data:
+        parse_location(data.readline(), result)
+        
+        # Skip lines 2-8
+        while not ((data.readline()).split(","))[0] == "DATA PERIODS":
+            data.readline()
+        
+        
+        for line in data:
+            parse_data(line, result)
     
-    # Skip lines 2-8
-    while not ((data.readline()).split(","))[0] == "DATA PERIODS":
-        data.readline()
-    
-    
-    for line in data:
-        parse_data(line, result)
-
-# Finalize: Transform data to numpy array, if possible
-result["time"] = np.linspace(start=0,
-                             stop=len(result["temperature"])-1,
-                             num=len(result["temperature"]),
-                             dtype="int")
-for key in key_list:
-    result[key] = np.array(result[key])
+    # Finalize: Transform data to numpy array, if possible
+    result["time"] = np.linspace(start=0,
+                                 stop=len(result["temperature"])-1,
+                                 num=len(result["temperature"]),
+                                 dtype="int")
+    for key in key_list:
+        result[key] = np.array(result[key])
     
